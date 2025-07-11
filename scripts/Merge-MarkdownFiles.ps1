@@ -71,7 +71,7 @@ function Get-MarkdownFiles {
         [string]$Path,
         [string]$Lang
     )
-    Write-Host "Getting all markdown files from the $path directory..."
+    Write-Host "Getting all markdown files from the $path directory with language $Lang..."
     if (Test-Path $Path -PathType Container) {
         # Get the list of folders in the directory (feed is excluded as it's a stub for RSS)
         $folders = Get-ChildItem -Path $Path -Directory -Exclude feed
@@ -79,7 +79,7 @@ function Get-MarkdownFiles {
 
         # Iterate over each folder
         foreach ($folder in $folders) {
-            $chapterLocalized = Join-Path $folder.FullName "chapter.v4_${Lang}.md"
+            $chapterLocalized = Join-Path $folder.FullName "chapter.v4_$Lang.md"
             $chapterDefault   = Join-Path $folder.FullName "chapter.v4.md"
             if (Test-Path $chapterLocalized) {
                 $markdownFiles += Get-Item $chapterLocalized
@@ -90,9 +90,9 @@ function Get-MarkdownFiles {
             $docFiles = Get-ChildItem -Path $folder.FullName -Recurse -File | Where-Object { $_.Name -match "default\.v4\.md|docs\.md" }
             foreach ($doc in $docFiles) {
                 if ($doc.Name -eq 'docs.md') {
-                    $locName = "docs.v4_${Lang}.md"
+                    $locName = "docs.v4_$Lang.md"
                 } else {
-                    $locName = "$($doc.BaseName)_${Lang}.md"
+                    $locName = "$($doc.BaseName)_$Lang.md"
                 }
                 $locPath = Join-Path $doc.DirectoryName $locName
                 if (Test-Path $locPath) {
