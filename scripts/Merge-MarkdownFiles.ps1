@@ -133,8 +133,10 @@ function Merge-MarkdownFiles {
     foreach ($file in $MarkdownFiles) {
         $combinedContent += $file.Content + "`n`n"
     }
-    # Fix Chapters to make them H1
-    $combinedContent = $combinedContent -replace '####\sChapter', '# Chapter'
+    # Fix Chapters to make them H1. Some languages do not use the word
+    # 'Chapter', so look for any H4 heading ending with a number and
+    # promote it to H1.
+    $combinedContent = $combinedContent -replace '(?m)^####\s+([^\r\n]*\d+[^\r\n]*)', '# $1'
 
     # Replace Headings like "Chapter 1" with "01. Basics"
     $combinedContent = Set-ChapterTitles -MarkdownContent $combinedContent -FolderPath $directoryPath
@@ -149,7 +151,7 @@ function Set-ChapterTitles {
         [string]$MarkdownContent,
         [string]$FolderPath
     )
-    Write-Host "Replacing '# Chapter x' headings with directory names..."
+    Write-Host "Replacing chapter headings with directory names..."
     # Get the list of subfolders (feed is excluded as it's a stub for RSS)
     $subfolders = Get-ChildItem -Path $FolderPath -Directory -Exclude feed | Sort-Object Name
 
@@ -162,8 +164,17 @@ function Set-ChapterTitles {
         $folderName = Format-ChapterName -inputString $folder.Name
 
     
-        # Find the index of the existing heading in the markdown content
-        $headingIndex = $markdownLines.IndexOf("# Chapter $($i + 1)")
+        # Build a regex that matches headings containing the chapter number
+        $chapterNumber = $i + 1
+        $regex = "^#\s+.*\b$chapterNumber\b.*$"
+        $headingIndex = -1
+
+        for ($lineIdx = 0; $lineIdx -lt $markdownLines.Count; $lineIdx++) {
+            if ($markdownLines[$lineIdx] -match $regex) {
+                $headingIndex = $lineIdx
+                break
+            }
+        }
 
         if ($headingIndex -ge 0) {
             $markdownLines[$headingIndex] = "# $folderName"
