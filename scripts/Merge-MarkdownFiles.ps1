@@ -152,7 +152,7 @@ function Merge-MarkdownFiles {
 	$newChapter = "# " + $ChapterPrefix
 
 	$combinedContent = $combinedContent -replace $searchPattern, $newChapter
-	
+
     # Replace Headings like "Chapter 1" with "01. Basics"
     $combinedContent = Set-ChapterTitles -MarkdownContent $combinedContent -FolderPath $directoryPath -ChapterPrefix $ChapterPrefix
 
